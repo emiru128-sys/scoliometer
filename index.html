@@ -14,11 +14,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: one column, phone first. Instrument panel on top, controls under it, log and setup as tabs. */
+/* Layout: one column, phone first. Instrument panel on top, controls under it; Log, Report and Setup as tabs. */
 :root{
   --bg:#eef1f5; --surface:#ffffff; --surface-2:#f4f6f9; --fg:#172029; --muted:#5d6b78; --line:#d7dde5;
-  --accent:#c4620c; --accent-ink:#9a4c0a; --on-accent:#ffffff; --band:rgba(196,98,12,.13);
-  --veil:rgba(255,255,255,.74); --critical:#b3261e;
+  --accent:#c4620c; --accent-ink:#9a4c0a; --on-accent:#ffffff; --band:rgba(196,98,12,.13); --accent-soft:rgba(196,98,12,.14);
+  --veil:rgba(255,255,255,.74); --critical:#b3261e; --good:#1f7a3a;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --font-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --font-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -27,16 +27,16 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#0f141a; --surface:#171e26; --surface-2:#1f2832; --fg:#e6ebf0; --muted:#8e9aa6; --line:#2a3542;
-    --accent:#f0963a; --accent-ink:#ffb86b; --on-accent:#141a21; --band:rgba(240,150,58,.16);
-    --veil:rgba(23,30,38,.78); --critical:#ff7b72;
+    --accent:#f0963a; --accent-ink:#ffb86b; --on-accent:#141a21; --band:rgba(240,150,58,.16); --accent-soft:rgba(240,150,58,.18);
+    --veil:rgba(23,30,38,.78); --critical:#ff7b72; --good:#4cc16f;
     --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0f141a; --surface:#171e26; --surface-2:#1f2832; --fg:#e6ebf0; --muted:#8e9aa6; --line:#2a3542;
-  --accent:#f0963a; --accent-ink:#ffb86b; --on-accent:#141a21; --band:rgba(240,150,58,.16);
-  --veil:rgba(23,30,38,.78); --critical:#ff7b72;
+  --accent:#f0963a; --accent-ink:#ffb86b; --on-accent:#141a21; --band:rgba(240,150,58,.16); --accent-soft:rgba(240,150,58,.18);
+  --veil:rgba(23,30,38,.78); --critical:#ff7b72; --good:#4cc16f;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
   color-scheme:dark;
 }
@@ -45,13 +45,14 @@ html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--font-ui);-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
 [hidden]{display:none!important}
 h2{margin:0;font:600 15px/1.3 var(--font-ui)}
+h3{margin:0;font:600 13px/1.3 var(--font-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 p{margin:0}
 .top{position:sticky;top:0;z-index:5;background:var(--bg);padding-top:calc(10px + env(safe-area-inset-top,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .top .inner{max-width:560px;margin:0 auto}
 .top h1{margin:0;font:600 17px/1.2 var(--font-ui);display:flex;align-items:baseline;gap:10px}
 .top h1 small{font:500 11px/1 var(--font-mono);color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-.tabs{display:flex;gap:4px;margin-top:8px;border-bottom:1px solid var(--line)}
-.tabs button{flex:1;appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 4px;font:500 14px var(--font-ui);color:var(--muted);cursor:pointer}
+.tabs{display:flex;gap:2px;margin-top:8px;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 2px;font:500 14px var(--font-ui);color:var(--muted);cursor:pointer}
 .tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
 .tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 main{padding-block:14px calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -61,12 +62,13 @@ main>section{max-width:560px;margin:0 auto;display:grid;gap:14px}
 .mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .row .grow{flex:1;min-width:0}
+.stack{display:grid;gap:10px}
 
 /* Instrument */
-.instrument{position:relative;width:100%;aspect-ratio:1;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.instrument{position:relative;width:100%;aspect-ratio:4/3;max-width:100%;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
 .dial{position:absolute;inset:0;display:grid;place-items:center;transition:transform .35s ease}
 @media (prefers-reduced-motion: reduce){.dial{transition:none}}
-.dial svg{width:94%;height:auto;display:block;overflow:visible}
+.dial svg{width:100%;height:auto;display:block;overflow:visible}
 .track{fill:none;stroke:var(--line);stroke-width:3;stroke-linecap:round}
 .band{fill:none;stroke:var(--band);stroke-width:16}
 .tick{stroke:var(--muted);stroke-width:1}
@@ -80,6 +82,10 @@ main>section{max-width:560px;margin:0 auto;display:grid;gap:14px}
 .gate{position:absolute;inset:0;display:grid;place-items:center;background:var(--veil);padding:16px;text-align:center}
 .gate .box{display:grid;gap:10px;justify-items:center;max-width:280px}
 .gate p{font-size:13px;color:var(--muted)}
+.lrbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.lrbar .side{font:600 30px/1 var(--font-mono);color:var(--muted);text-align:center;padding:6px 0;border-radius:12px;border:1px solid var(--line);background:var(--surface);transition:background .15s,color .15s}
+.lrbar .side.hi{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.lrbar .mid{font:500 13px var(--font-ui);color:var(--muted);text-align:center;min-width:88px}
 
 /* Buttons */
 .btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:500 14px var(--font-ui);padding:10px 14px;border-radius:12px;cursor:pointer;min-height:44px;-webkit-tap-highlight-color:transparent}
@@ -89,10 +95,13 @@ main>section{max-width:560px;margin:0 auto;display:grid;gap:14px}
 .btn.danger{color:var(--critical)}
 .btn.armed{border-color:var(--critical);color:var(--critical)}
 .btn.small{min-height:36px;padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
 .peakline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .peakline .pk{font:500 15px var(--font-mono);font-variant-numeric:tabular-nums}
 .peakline .pk b{font-weight:600}
 .peakline .spacer{flex:1}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btnrow .btn{width:100%}
 
 /* Level chips */
 .levels{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -110,15 +119,68 @@ main>section{max-width:560px;margin:0 auto;display:grid;gap:14px}
 
 /* Forms */
 .form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.form label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
-.form select,.form input{font:15px var(--font-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-height:42px;width:100%}
+.form label{display:grid;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+.form select,.form input,.form textarea{font:15px var(--font-ui);color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-height:42px;width:100%}
+.form textarea{min-height:64px;resize:vertical}
 .form .full{grid-column:1/-1}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;grid-column:1/-1}
+.checks label{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--fg);min-height:32px}
+.checks input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
 details.card>summary{cursor:pointer;font:600 15px var(--font-ui);list-style:none;display:flex;justify-content:space-between;align-items:center}
 details.card>summary::-webkit-details-marker{display:none}
 details.card>summary::after{content:"+";font:400 18px var(--font-mono);color:var(--muted)}
 details.card[open]>summary::after{content:"−"}
 ol.steps{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px}
 ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
+.video{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;border-radius:12px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line)}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
+/* Figures */
+.figwrap{max-width:360px;margin:0 auto;width:100%}
+.figwrap svg{width:100%;height:auto;display:block}
+.body{fill:var(--surface-2);stroke:var(--muted);stroke-width:1.2;stroke-linejoin:round}
+.spine{stroke:var(--muted);stroke-width:1.4;stroke-dasharray:3 3;fill:none}
+.blade{fill:none;stroke:var(--muted);stroke-width:1;stroke-linejoin:round}
+.landmark{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 3}
+.lm{font:11px var(--font-ui);fill:var(--fg)}
+.lm tspan.sub{fill:var(--muted);font-family:var(--font-mono)}
+.lrlbl{font:600 12px var(--font-ui);fill:var(--muted);text-anchor:middle}
+.zone{cursor:pointer}
+.zone rect{fill:var(--c);fill-opacity:.28;stroke:var(--c);stroke-width:0;transition:fill-opacity .15s}
+.zone.on rect{fill-opacity:.6;stroke:var(--fg);stroke-width:1.5}
+.zone text{font:600 11px var(--font-mono);fill:var(--fg);text-anchor:middle;dominant-baseline:middle;pointer-events:none}
+.zone:focus-visible{outline:none}
+.zone:focus-visible rect{stroke:var(--accent);stroke-width:2}
+.dot{fill:var(--fg)}
+.fig{fill:none;stroke:var(--fg);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.fig.helper{stroke:var(--muted)}
+.figfill{fill:var(--surface-2);stroke:var(--fg);stroke-width:2.2}
+.figfill.helper{stroke:var(--muted)}
+.floor{stroke:var(--line);stroke-width:2}
+.guide{stroke:var(--accent);stroke-width:1.2;stroke-dasharray:4 3}
+.phone{fill:var(--accent);stroke:none}
+.cap{font:11px var(--font-ui);fill:var(--fg)}
+.cap.mut{fill:var(--muted)}
+
+/* Guided */
+.gh{display:flex;justify-content:space-between;align-items:center}
+.gh .stepno{font:500 12px var(--font-mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.gtitle{font:600 18px/1.25 var(--font-ui);text-wrap:balance}
+.ginstr{font-size:15px}
+.count{display:grid;place-items:center;justify-self:center;position:relative;width:120px;height:120px}
+.count svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.count .ring-bg{fill:none;stroke:var(--line);stroke-width:8}
+.count .ring{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+@media (prefers-reduced-motion: reduce){.count .ring{transition:none}}
+.count .n{font:600 44px/1 var(--font-mono);font-variant-numeric:tabular-nums;position:relative}
+.count .n small{display:block;font:500 11px var(--font-ui);color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase;margin-top:4px}
+.result{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.result .v{font:600 22px var(--font-mono);font-variant-numeric:tabular-nums}
+.result .v small{font:500 12px var(--font-ui);color:var(--muted);margin-left:6px;letter-spacing:.06em}
+.sumtbl{display:grid;gap:6px}
+.sumrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.sumrow i{width:10px;height:10px;border-radius:50%;background:var(--c)}
+.sumrow .v{font:600 16px var(--font-mono);font-variant-numeric:tabular-nums}
 
 /* Chart */
 .chartwrap{position:relative;min-width:0}
@@ -156,6 +218,15 @@ ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
 .days{display:grid;gap:8px}
 .empty-state{padding:22px 14px;text-align:center;color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:12px}
 
+/* Report */
+.progress{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.progress .bar{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.progress .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.readtbl{width:100%;border-collapse:collapse;font:13px var(--font-mono);font-variant-numeric:tabular-nums}
+.readtbl th,.readtbl td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.readtbl th{font:600 11px var(--font-ui);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tblwrap{overflow-x:auto;min-width:0}
+
 /* Toast */
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);font:500 13px var(--font-ui);padding:10px 14px;border-radius:999px;box-shadow:0 6px 20px rgba(0,0,0,.2);z-index:20;max-width:calc(100% - 32px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
@@ -167,6 +238,7 @@ ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
     <nav class="tabs" role="tablist">
       <button role="tab" data-view="measure" aria-selected="true">Measure</button>
       <button role="tab" data-view="log" aria-selected="false">Log</button>
+      <button role="tab" data-view="report" aria-selected="false">Report</button>
       <button role="tab" data-view="setup" aria-selected="false">Setup</button>
     </nav>
   </div>
@@ -174,7 +246,7 @@ ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
 
 <main>
 <section id="view-measure">
-  <div class="instrument">
+  <div class="instrument" id="instrument">
     <div class="dial" id="dial"><svg id="gauge" viewBox="0 -10 320 182" xmlns="http://www.w3.org/2000/svg" aria-label="Trunk rotation gauge"></svg></div>
     <div class="gate" id="gate">
       <div class="box">
@@ -183,50 +255,56 @@ ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
       </div>
     </div>
   </div>
+  <div class="lrbar" id="lrbar"><span class="side" id="lrL">L</span><span class="mid" id="lrMid">patient's left · right</span><span class="side" id="lrR">R</span></div>
 
-  <div class="peakline">
-    <span class="pk">Peak <b id="peakTxt">—</b></span>
-    <button class="btn small ghost" id="resetPeak">Reset</button>
-    <span class="spacer"></span>
-    <button class="btn small" id="rotateBtn" title="Rotate the dial so a helper standing behind can read it">Rotate dial</button>
+  <!-- Free mode -->
+  <div class="stack" id="free">
+    <button class="btn primary" id="startGuided">Start guided session</button>
+    <div class="peakline">
+      <span class="pk">Peak <b id="peakTxt">—</b></span>
+      <button class="btn small ghost" id="resetPeak">Reset</button>
+      <span class="spacer"></span>
+      <button class="btn small" id="rotateBtn" title="Rotate the dial so a helper standing behind can read it">Rotate dial</button>
+    </div>
+    <div class="levels" id="levels"></div>
+    <details class="card" id="zones">
+      <summary>Where the levels are</summary>
+      <div class="figwrap"><svg id="zoneMap" viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg" aria-label="Back viewed from behind with the four measuring zones"></svg></div>
+      <p class="note">Viewed from behind. The helper feels for the landmarks on the right, slides the phone through a zone, then taps that zone and logs the peak.</p>
+    </details>
+    <button class="btn primary" id="logBtn">Log peak</button>
+    <p class="note" id="sensorNote"></p>
+    <details class="card" id="howto">
+      <summary>How to measure</summary>
+      <div class="figwrap"><svg id="postureFig" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-label="Forward bend position, side view"></svg></div>
+      <ol class="steps">
+        <li>Person measured: feet together, knees straight, bend forward from the hips until the back is level with the floor. Arms hang, palms together, head relaxed.</li>
+        <li>Helper stands behind, eyes level with the back, and lays the phone flat across it at the neck bump: screen up, long edge across the spine, top of the phone pointing to the patient's left.</li>
+        <li>Slide slowly down the spine. The peak updates by itself.</li>
+        <li>After each zone, tap that level, then <b>Log peak</b>. Four zones, top to bottom. Or use the guided session, which walks you through it.</li>
+        <li>Same time of day and the same bend depth each session, so days compare.</li>
+      </ol>
+      <p class="note">7° or more at any level is the usual screening cut-off for an X-ray. The shaded band on the dial marks it.</p>
+      <h3>Video</h3>
+      <div class="video" id="videoBox"></div>
+      <p class="note" id="videoNote"></p>
+    </details>
+    <details class="card" id="manual">
+      <summary>Enter a reading by hand</summary>
+      <div class="form">
+        <label>Level<select id="mLevel"></select></label>
+        <label>Degrees<input id="mDeg" type="number" inputmode="decimal" step="0.5" min="0" max="45" placeholder="0.0"></label>
+        <label>Higher side<select id="mSide"><option value="R">Right</option><option value="L">Left</option><option value="0">Level</option></select></label>
+        <label>&nbsp;<button class="btn" id="mAdd" type="button">Add reading</button></label>
+      </div>
+    </details>
   </div>
 
-  <div class="levels" id="levels"></div>
-
-  <button class="btn primary" id="logBtn">Log peak</button>
-  <p class="note" id="sensorNote"></p>
-
-  <details class="card" id="howto">
-    <summary>How to measure</summary>
-    <ol class="steps">
-      <li>Someone stands behind you. You bend forward, feet together, knees straight, arms hanging, until your back is level with the floor.</li>
-      <li>They lay the phone flat across your back at the top, screen up, long edge across the spine, top of the phone pointing to your left.</li>
-      <li>They slide it slowly down the spine. The peak updates by itself.</li>
-      <li>After each region, tap that level, then <b>Log peak</b>. Four levels, top to bottom.</li>
-      <li>Same time of day and the same bend depth each session, so days compare.</li>
-    </ol>
-    <p class="note">7° or more at any level is the usual screening cut-off for an X-ray. The shaded band on the dial marks it.</p>
-  </details>
-
-  <details class="card" id="manual">
-    <summary>Enter a reading by hand</summary>
-    <div class="form">
-      <label>Level
-        <select id="mLevel"></select>
-      </label>
-      <label>Degrees
-        <input id="mDeg" type="number" inputmode="decimal" step="0.5" min="0" max="45" placeholder="0.0">
-      </label>
-      <label>Higher side
-        <select id="mSide">
-          <option value="R">Right</option>
-          <option value="L">Left</option>
-          <option value="0">Level</option>
-        </select>
-      </label>
-      <label>&nbsp;<button class="btn" id="mAdd" type="button">Add reading</button></label>
-    </div>
-  </details>
+  <!-- Guided mode -->
+  <div class="card" id="guided" hidden>
+    <div class="gh"><span class="stepno" id="gStepNo">Step 1 of 6</span><button class="btn small ghost" id="gExit">Exit</button></div>
+    <div class="stack" id="gBody"></div>
+  </div>
 </section>
 
 <section id="view-log" hidden>
@@ -241,6 +319,24 @@ ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
   </div>
   <div class="row"><h2 class="grow">Sessions</h2><button class="btn small" id="copyCsv">Copy CSV</button></div>
   <div class="days" id="days"></div>
+</section>
+
+<section id="view-report" hidden>
+  <div class="card">
+    <h2>Assessment report</h2>
+    <p class="note">Fill in what you know; skip the rest. The report bundles these answers with every scoliometer session so a therapist (or an AI) has the full picture in one paste.</p>
+    <div class="progress"><span id="progTxt">0 of 0 answered</span><span class="bar"><i id="progBar"></i></span></div>
+    <div class="btnrow">
+      <button class="btn primary" id="copyReport" style="min-height:46px;font-size:15px">Copy report</button>
+      <button class="btn" id="shareReport" hidden>Share report</button>
+    </div>
+  </div>
+  <form id="reportForm" class="stack" autocomplete="off"></form>
+  <div class="card">
+    <h2>Measurements included</h2>
+    <div class="tblwrap" id="reportMeas"></div>
+    <div class="row"><button class="btn small" id="copyCsv2">Copy CSV</button></div>
+  </div>
 </section>
 
 <section id="view-setup" hidden>
@@ -259,6 +355,14 @@ ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
     <p class="note">If the dial says the wrong side is higher, switch this.</p>
   </div>
   <div class="card">
+    <h2>Guided session</h2>
+    <div class="form">
+      <label>Voice guidance<select id="voiceSel"><option value="1">On</option><option value="0">Off</option></select></label>
+      <label>Seconds per zone<input id="secsInp" type="number" inputmode="numeric" min="3" max="20" step="1"></label>
+    </div>
+    <p class="note">The helper taps Start at each zone, the app counts down out loud while they slide the phone, then reads out the peak.</p>
+  </div>
+  <div class="card">
     <h2>Zero</h2>
     <p class="note">A case or camera bump tilts the phone by a degree or two. Put it on a flat table and set zero once.</p>
     <div class="row">
@@ -268,10 +372,15 @@ ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
     </div>
   </div>
   <div class="card">
+    <h2>Tutorial video</h2>
+    <div class="form"><label class="full">YouTube link shown under "How to measure"<input id="videoInp" type="url" inputmode="url" placeholder="https://www.youtube.com/watch?v=…"></label></div>
+    <p class="note">Default: Boston Children's Hospital, spine exam with an inclinometer. Paste another link to swap it.</p>
+  </div>
+  <div class="card">
     <h2>Data</h2>
-    <p class="note">Readings stay in this browser on this phone. Nothing is uploaded. Copy the CSV now and then as a backup.</p>
+    <p class="note">Readings and report answers stay in this browser on this phone. Nothing is uploaded. Copy the report now and then as a backup.</p>
     <div class="row">
-      <button class="btn" id="copyCsv2">Copy CSV</button>
+      <button class="btn" id="copyCsv3">Copy CSV</button>
       <button class="btn danger" id="clearAll">Delete all readings</button>
     </div>
   </div>
@@ -286,22 +395,20 @@ ol.steps li::marker{font-family:var(--font-mono);color:var(--muted)}
 (function(){
 'use strict';
 var LEVELS=[
-  {id:'UT',name:'Upper thoracic',seg:'T1–T4',c:'var(--s1)'},
-  {id:'MT',name:'Mid thoracic',seg:'T5–T8',c:'var(--s2)'},
-  {id:'TL',name:'Thoracolumbar',seg:'T9–L1',c:'var(--s3)'},
-  {id:'LU',name:'Lumbar',seg:'L2–L5',c:'var(--s4)'}
+  {id:'UT',name:'Upper thoracic',seg:'T1–T4',c:'var(--s1)',from:'the neck bump',to:'the top of the shoulder blades',short:'Neck bump → top of shoulder blades'},
+  {id:'MT',name:'Mid thoracic',seg:'T5–T8',c:'var(--s2)',from:'between the shoulder blades',to:'their bottom tips',short:'Between the shoulder blades → their tips'},
+  {id:'TL',name:'Thoracolumbar',seg:'T9–L1',c:'var(--s3)',from:'the shoulder-blade tips',to:'the lowest rib',short:'Shoulder-blade tips → lowest rib'},
+  {id:'LU',name:'Lumbar',seg:'L2–L5',c:'var(--s4)',from:'below the ribs',to:'the top of the hip bones',short:'Below the ribs → top of hip bones'}
 ];
 var byId={};LEVELS.forEach(function(l){byId[l.id]=l;});
-var K=2;            // degrees of arc per degree of reading
-var MAXR=30;        // dial range
-var CUT=7;          // screening band
-var CX=160,CY=170,R=135;
+var K=2,MAXR=30,CUT=7,CX=160,CY=170,R=135;
+var DEFAULT_VIDEO='https://www.youtube.com/watch?v=rBwVrPKm-qE';
 var $=function(id){return document.getElementById(id);};
 
 /* ---------- storage ---------- */
 var KEY='scoliometer.v1';
-var state={level:'MT',top:'L',zero:0,rot:0,readings:[]};
-function load(){try{var s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&typeof s==='object'){state.level=s.level||'MT';state.top=s.top==='R'?'R':'L';state.zero=+s.zero||0;state.rot=+s.rot||0;state.readings=Array.isArray(s.readings)?s.readings:[];}}catch(e){}}
+var state={level:'MT',top:'L',zero:0,rot:0,voice:1,secs:6,video:'',readings:[],report:{}};
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&typeof s==='object'){state.level=byId[s.level]?s.level:'MT';state.top=s.top==='R'?'R':'L';state.zero=+s.zero||0;state.rot=+s.rot||0;state.voice=s.voice===0?0:1;state.secs=Math.min(20,Math.max(3,+s.secs||6));state.video=typeof s.video==='string'?s.video:'';state.readings=Array.isArray(s.readings)?s.readings:[];state.report=(s.report&&typeof s.report==='object')?s.report:{};}}catch(e){}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){toast('Could not save (storage blocked)');}}
 load();
 
@@ -311,13 +418,24 @@ function f1(n){return (Math.round(n*10)/10).toFixed(1);}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 function pad(n){return (n<10?'0':'')+n;}
 function dayKey(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
-function fmtDay(key){var p=key.split('-');var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});}
-function fmtShort(key){var p=key.split('-');var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(undefined,{day:'numeric',month:'short'});}
+function fromKey(key){var p=key.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function fmtDay(key){return fromKey(key).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'});}
+function fmtShort(key){return fromKey(key).toLocaleDateString(undefined,{day:'numeric',month:'short'});}
+function fmtLong(key){return fromKey(key).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});}
 function fmtTime(iso){var d=new Date(iso);return pad(d.getHours())+':'+pad(d.getMinutes());}
 function sideWord(s){return s==='R'?'R':s==='L'?'L':'—';}
+function sideLong(s){return s==='R'?'right higher':s==='L'?'left higher':'level';}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 var toastT=null;
-function toast(msg){var t=document.querySelector('.toast');if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t);}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true;},1900);}
+function toast(msg){var t=document.querySelector('.toast');if(!t){t=document.createElement('div');t.className='toast';document.body.appendChild(t);}t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(function(){t.hidden=true;},2000);}
+function say(text){
+  if(!state.voice||!('speechSynthesis' in window))return;
+  try{window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(text);u.lang='en-US';u.rate=1;window.speechSynthesis.speak(u);}catch(e){}
+}
+function copyText(text,okMsg){
+  function fallback(){var ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}document.body.removeChild(ta);toast(ok?okMsg:'Copy blocked by the browser');}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast(okMsg);},fallback);}else fallback();
+}
 
 /* ---------- gauge ---------- */
 var gauge=$('gauge'),ball,peakMark,degEl,sideEl;
@@ -344,39 +462,114 @@ function buildGauge(){
 }
 buildGauge();
 
+/* ---------- figures ---------- */
+function buildZoneMap(svg){
+  var s=[];
+  s.push('<ellipse class="body" cx="110" cy="24" rx="20" ry="22"/>');
+  s.push('<rect class="body" x="101" y="44" width="18" height="16" rx="3"/>');
+  s.push('<path class="body" d="M46 66 C40 100 60 150 64 190 C66 220 50 245 48 272 L172 272 C170 245 154 220 156 190 C160 150 180 100 174 66 Q110 56 46 66 Z"/>');
+  s.push('<polygon class="blade" points="74,84 98,86 90,146"/><polygon class="blade" points="146,84 122,86 130,146"/>');
+  s.push('<path class="blade" d="M106 186 L84 197 M114 186 L136 197"/>');
+  s.push('<path class="blade" d="M54 240 Q110 226 166 240"/>');
+  s.push('<line class="spine" x1="110" y1="58" x2="110" y2="268"/>');
+  var zones=[{y:62,h:46},{y:108,h:46},{y:154,h:46},{y:200,h:44}];
+  LEVELS.forEach(function(l,i){var z=zones[i];s.push('<g class="zone" data-level="'+l.id+'" tabindex="0" role="button" aria-label="'+l.name+'" style="--c:'+l.c+'"><rect x="92" y="'+z.y+'" width="36" height="'+z.h+'" rx="5"/><text x="110" y="'+(z.y+z.h/2)+'">'+l.seg+'</text></g>');});
+  var lms=[[62,'Neck bump','C7 · start here'],[146,'Shoulder-blade tips','T7–T8'],[194,'Lowest rib','T12'],[236,'Top of hip bones','L4 · stop here']];
+  lms.forEach(function(k){s.push('<line class="landmark" x1="130" y1="'+k[0]+'" x2="176" y2="'+k[0]+'"/><circle class="dot" cx="110" cy="'+k[0]+'" r="3"/><text class="lm" x="180" y="'+(k[0]-1)+'"><tspan>'+k[1]+'</tspan><tspan class="sub" x="180" dy="13">'+k[2]+'</tspan></text>');});
+  s.push('<text class="lrlbl" x="46" y="292">L</text><text class="lrlbl" x="174" y="292">R</text>');
+  svg.innerHTML=s.join('');
+  svg.querySelectorAll('.zone').forEach(function(g){
+    function pick(){setLevel(g.dataset.level);}
+    g.addEventListener('click',pick);
+    g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});
+  });
+}
+function renderZones(){document.querySelectorAll('.zone').forEach(function(g){g.classList.toggle('on',g.dataset.level===state.level);});}
+buildZoneMap($('zoneMap'));
+
+function buildPosture(svg){
+  var s=[];
+  s.push('<line class="floor" x1="16" y1="182" x2="304" y2="182"/>');
+  /* guide: back level with floor */
+  s.push('<line class="guide" x1="40" y1="92" x2="230" y2="92"/>');
+  s.push('<text class="cap" x="40" y="80">Back level with the floor</text>');
+  /* person measured, facing left: legs, hips, back, head, arms */
+  s.push('<path class="fig" d="M178 182 L178 104 M190 182 L190 104"/>');
+  s.push('<path class="fig" d="M186 100 L112 92"/>');
+  s.push('<path class="fig" d="M112 92 Q100 96 98 108"/>');
+  s.push('<circle class="figfill" cx="90" cy="118" r="11"/>');
+  s.push('<path class="fig" d="M118 94 L118 148 M124 94 L122 148"/>');
+  s.push('<ellipse class="figfill" cx="120" cy="152" rx="6" ry="4"/>');
+  s.push('<path class="fig" d="M170 182 L196 182"/>');
+  /* helper standing behind, facing left */
+  s.push('<circle class="figfill helper" cx="262" cy="62" r="10"/>');
+  s.push('<path class="fig helper" d="M262 72 L262 134 M262 134 L252 182 M262 134 L272 182 M262 86 L224 88 M262 86 L270 120"/>');
+  s.push('<path class="fig helper" d="M252 182 L246 182 M272 182 L278 182"/>');
+  /* phone on the back */
+  s.push('<rect class="phone" x="146" y="86" width="22" height="7" rx="2" transform="rotate(5 157 89)"/>');
+  s.push('<line class="landmark" x1="157" y1="84" x2="157" y2="56"/>');
+  s.push('<text class="cap" x="157" y="50" text-anchor="middle">Phone flat across the back</text>');
+  /* captions */
+  s.push('<text class="cap mut" x="20" y="150">Arms hang,</text><text class="cap mut" x="20" y="163">palms together</text>');
+  s.push('<line class="landmark" x1="88" y1="156" x2="112" y2="150"/>');
+  s.push('<text class="cap mut" x="204" y="150">Knees straight,</text><text class="cap mut" x="204" y="163">feet together</text>');
+  s.push('<text class="cap mut" x="210" y="30">Helper behind,</text><text class="cap mut" x="210" y="42">eyes at back level</text>');
+  svg.innerHTML=s.join('');
+}
+buildPosture($('postureFig'));
+
+function videoId(url){var m=String(url||'').match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([A-Za-z0-9_-]{6,})/);return m?m[1]:'';}
+var videoLoaded=false;
+function renderVideo(){
+  var url=state.video||DEFAULT_VIDEO,id=videoId(url),box=$('videoBox'),note=$('videoNote');
+  box.innerHTML='';videoLoaded=false;
+  if(!id){note.innerHTML='That link is not a YouTube video. <a href="'+esc(url)+'" target="_blank" rel="noopener">Open it</a> in a new tab instead.';return;}
+  note.innerHTML='If the video does not play here, <a href="https://www.youtube.com/watch?v='+esc(id)+'" target="_blank" rel="noopener">open it on YouTube</a>.';
+  if($('howto').open)loadVideo();
+}
+function loadVideo(){
+  if(videoLoaded)return;var id=videoId(state.video||DEFAULT_VIDEO);if(!id)return;
+  $('videoBox').innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+esc(id)+'" title="Tutorial video" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  videoLoaded=true;
+}
+$('howto').addEventListener('toggle',function(){if($('howto').open)loadVideo();});
+renderVideo();
+
 /* ---------- sensor ---------- */
-var enabled=false,filt=null,lastEvt=0,liveV=null,peakV=null,shownDeg='',shownSide='';
+var enabled=false,filt=null,lastEvt=0,liveV=null,peakV=null,shownDeg='',shownSide='',shownHi='';
+var peakDirty=false;
 function onOrient(e){
-  if(e.beta==null)return;
-  var raw=e.beta;
-  filt=(filt==null)?raw:filt+0.22*(raw-filt);
-  lastEvt=Date.now();
+  if(e.beta==null)return;var raw=e.beta;filt=(filt==null)?raw:filt+0.22*(raw-filt);lastEvt=Date.now();
+  if(!enabled)return;
+  var v=signed(filt),a=Math.abs(v);liveV=v;
+  if(peakV==null||a>Math.abs(peakV)){peakV=v;peakDirty=true;}
 }
 function signed(b){var c=b-state.zero;return state.top==='L'?-c:c;} /* positive = patient's right side higher */
 function setBall(v){var a=clamp(-v,-MAXR,MAXR)*K,p=pt(a,R);ball.setAttribute('cx',p[0].toFixed(1));ball.setAttribute('cy',p[1].toFixed(1));}
 function updatePeakUI(){
-  if(peakV==null){$('peakTxt').textContent='—';peakMark.setAttribute('visibility','hidden');return;}
-  var a=Math.abs(peakV);
-  $('peakTxt').textContent=f1(a)+'° '+(a<0.5?'':peakV>0?'R':'L');
-  var p=pt(clamp(-peakV,-MAXR,MAXR)*K,R);peakMark.setAttribute('cx',p[0].toFixed(1));peakMark.setAttribute('cy',p[1].toFixed(1));peakMark.setAttribute('visibility','visible');
+  if(peakV==null){$('peakTxt').textContent='—';peakMark.setAttribute('visibility','hidden');}
+  else{var a=Math.abs(peakV);$('peakTxt').textContent=f1(a)+'° '+(a<0.5?'':peakV>0?'R':'L');var p=pt(clamp(-peakV,-MAXR,MAXR)*K,R);peakMark.setAttribute('cx',p[0].toFixed(1));peakMark.setAttribute('cy',p[1].toFixed(1));peakMark.setAttribute('visibility','visible');}
   updateLogBtn();
+}
+function setLR(hi,label){
+  if(hi!==shownHi){$('lrL').classList.toggle('hi',hi==='L');$('lrR').classList.toggle('hi',hi==='R');shownHi=hi;}
+  if(label!==$('lrMid').textContent)$('lrMid').textContent=label;
 }
 function tick(){
   if(enabled&&filt!=null){
-    var v=signed(filt),a=Math.abs(v);liveV=v;
-    if(peakV==null||a>Math.abs(peakV)){peakV=v;updatePeakUI();}
+    var v=signed(filt),a=Math.abs(v);
+    if(peakDirty){peakDirty=false;updatePeakUI();}
     var t=f1(a)+'°';if(t!==shownDeg){degEl.textContent=t;shownDeg=t;}
     var s=a<0.5?'LEVEL':(v>0?'RIGHT HIGHER':'LEFT HIGHER');if(s!==shownSide){sideEl.textContent=s;shownSide=s;}
     setBall(v);
+    setLR(a<0.5?'':(v>0?'R':'L'),a<0.5?'level':(v>0?'right higher':'left higher'));
   }
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
-
 var wake=null;
 function keepAwake(){if(!('wakeLock' in navigator))return;navigator.wakeLock.request('screen').then(function(w){wake=w;}).catch(function(){});}
 document.addEventListener('visibilitychange',function(){if(enabled&&document.visibilityState==='visible')keepAwake();});
-
 function enable(){
   var note=$('sensorNote'),status=$('sensorStatus');
   if(typeof DeviceOrientationEvent==='undefined'){note.textContent='This browser has no motion sensor API. Open the page on a phone.';status.textContent='No motion API in this browser.';return;}
@@ -399,29 +592,28 @@ $('enableBtn').addEventListener('click',enable);
 $('enableBtn2').addEventListener('click',function(){enable();showView('measure');});
 
 /* ---------- levels ---------- */
+function setLevel(id){state.level=id;save();peakV=null;updatePeakUI();renderLevels();}
 function renderLevels(){
   var box=$('levels');box.innerHTML='';
   LEVELS.forEach(function(l){
     var b=document.createElement('button');b.className='lv';b.type='button';b.style.setProperty('--c',l.c);
     b.setAttribute('aria-pressed',state.level===l.id?'true':'false');
     b.innerHTML='<span><i></i>'+l.name+'</span><small>'+l.seg+'</small>';
-    b.addEventListener('click',function(){state.level=l.id;save();peakV=null;updatePeakUI();renderLevels();updateLogBtn();});
+    b.addEventListener('click',function(){setLevel(l.id);});
     box.appendChild(b);
   });
   var sel=$('mLevel');sel.innerHTML=LEVELS.map(function(l){return '<option value="'+l.id+'"'+(l.id===state.level?' selected':'')+'>'+l.name+' ('+l.seg+')</option>';}).join('');
+  renderZones();updateLogBtn();
 }
-function updateLogBtn(){
-  var l=byId[state.level];
-  $('logBtn').textContent=(peakV!=null?'Log peak':'Log reading')+' · '+l.name;
-}
-renderLevels();updateLogBtn();
+function updateLogBtn(){$('logBtn').textContent=(peakV!=null?'Log peak':'Log reading')+' · '+byId[state.level].name;}
+renderLevels();
 
 /* ---------- logging ---------- */
-function addReading(level,deg,side,src){
+function addReading(level,deg,side,src,quiet){
   var id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   state.readings.push({id:id,t:new Date().toISOString(),level:level,deg:Math.round(deg*10)/10,side:side,src:src});
-  save();renderLog();
-  toast('Logged '+f1(deg)+'° '+(side==='0'?'level':side==='R'?'right higher':'left higher')+' · '+byId[level].name);
+  save();renderLog();renderReportMeas();
+  if(!quiet)toast('Logged '+f1(deg)+'° '+sideLong(side)+' · '+byId[level].name);
 }
 $('logBtn').addEventListener('click',function(){
   if(!enabled){$('howto').open=false;$('manual').open=true;$('mDeg').focus();toast('Sensor is off. Enable it or enter by hand.');return;}
@@ -429,9 +621,9 @@ $('logBtn').addEventListener('click',function(){
   if(v==null){toast('No reading yet');return;}
   var a=Math.abs(v),side=a<0.5?'0':(v>0?'R':'L');
   addReading(state.level,a,side,'sensor');
-  peakV=null;updatePeakUI();updateLogBtn();
+  peakV=null;updatePeakUI();
 });
-$('resetPeak').addEventListener('click',function(){peakV=null;updatePeakUI();updateLogBtn();});
+$('resetPeak').addEventListener('click',function(){filt=null;peakV=null;peakDirty=false;updatePeakUI();});
 $('mAdd').addEventListener('click',function(){
   var d=parseFloat($('mDeg').value);
   if(isNaN(d)||d<0||d>45){toast('Enter degrees between 0 and 45');return;}
@@ -440,9 +632,97 @@ $('mAdd').addEventListener('click',function(){
 });
 
 /* ---------- rotate ---------- */
-function applyRot(){$('dial').style.transform='rotate('+state.rot+'deg)';}
+function applyRot(){$('dial').style.transform=state.rot===0?'none':'rotate('+state.rot+'deg) scale(.72)';}
 $('rotateBtn').addEventListener('click',function(){state.rot=state.rot===0?90:state.rot===90?-90:0;save();applyRot();});
 applyRot();
+
+/* ---------- guided session ---------- */
+var G={active:false,step:0,phase:'ready',results:{},timer:null,left:0};
+function gSpeakStep(){
+  if(G.step===0){say('Guided measurement. The person being measured stands with feet together and knees straight, bends forward from the hips until the back is level with the floor, arms hanging, palms together, head relaxed. The helper stands behind, eyes level with the back. Tap ready when you are set.');}
+  else if(G.step>=1&&G.step<=4){var l=LEVELS[G.step-1];say('Zone '+G.step+' of 4, '+l.name+'. From '+l.from+' to '+l.to+'. Place the phone flat across the back at the start of the zone, then tap start.');}
+  else{say('All four zones done. Check the numbers and save the session.');}
+}
+function gRender(){
+  var body=$('gBody'),no=$('gStepNo');
+  $('instrument').hidden=!(G.step>=1&&G.step<=4);
+  $('lrbar').hidden=!(G.step>=1&&G.step<=4);
+  if(G.step===0){
+    no.textContent='Step 1 of 6 · Position';
+    body.innerHTML='<div class="gtitle">Get into position</div>'+
+      '<div class="figwrap"><svg id="postureFigG" viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" aria-label="Forward bend position, side view"></svg></div>'+
+      '<ol class="steps"><li><b>Person measured:</b> feet together, knees straight. Bend forward from the hips until the back is level with the floor. Arms hang, palms together, head relaxed.</li>'+
+      '<li><b>Helper:</b> stand behind, eyes level with the back. Hold the phone flat, screen up, long edge across the spine, top of the phone to the patient\'s <b>'+(state.top==='L'?'left':'right')+'</b>.</li>'+
+      '<li>Keep the bend still for the whole session (about a minute).</li></ol>'+
+      '<button class="btn primary" id="gReady">Ready · go to zone 1</button>'+
+      (enabled?'':'<p class="note">The sensor is not enabled yet. You will be asked at the first zone.</p>');
+    buildPosture($('postureFigG'));
+    $('gReady').addEventListener('click',function(){G.step=1;G.phase='ready';gRender();gSpeakStep();});
+  }else if(G.step<=4){
+    var l=LEVELS[G.step-1],r=G.results[l.id];
+    no.textContent='Step '+(G.step+1)+' of 6 · Zone '+G.step+' of 4';
+    var html='<div class="gtitle"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+l.c+';margin-right:8px;vertical-align:-1px"></span>'+l.name+' <span class="mono" style="color:var(--muted);font-weight:500;font-size:14px">'+l.seg+'</span></div>'+
+      '<div class="ginstr">'+l.short+'. Place the phone at the start, tap <b>Start</b>, then slide slowly to the end while it counts.</div>'+
+      '<div class="figwrap" style="max-width:260px"><svg id="zoneMapG" viewBox="0 0 320 300" xmlns="http://www.w3.org/2000/svg" aria-label="Zone map"></svg></div>';
+    if(G.phase==='ready'){
+      html+='<button class="btn primary" id="gStart">Start · counts '+state.secs+' s</button>';
+    }else if(G.phase==='counting'){
+      html+='<div class="count"><svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring" id="gRing" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg><div class="n" id="gNum">'+G.left+'<small>slide</small></div></div>'+
+        '<button class="btn" id="gCancel">Cancel</button>';
+    }else{
+      html+='<div class="result"><span>Peak for this zone</span><span class="v">'+(r?f1(r.deg)+'°<small>'+sideLong(r.side).toUpperCase()+'</small>':'—')+'</span></div>'+
+        '<div class="btnrow"><button class="btn" id="gRedo">Redo zone</button><button class="btn primary" id="gNext" style="min-height:46px;font-size:15px">'+(G.step<4?'Next zone':'Finish')+'</button></div>';
+    }
+    body.innerHTML=html;
+    buildZoneMap($('zoneMapG'));
+    document.querySelectorAll('#zoneMapG .zone').forEach(function(g){g.classList.toggle('on',g.dataset.level===l.id);g.style.cursor='default';});
+    if($('gStart'))$('gStart').addEventListener('click',gStartCount);
+    if($('gCancel'))$('gCancel').addEventListener('click',function(){gStopCount();G.phase='ready';gRender();});
+    if($('gRedo'))$('gRedo').addEventListener('click',function(){G.phase='ready';gRender();say('Redo. Place the phone at the start and tap start.');});
+    if($('gNext'))$('gNext').addEventListener('click',function(){G.step++;G.phase='ready';gRender();gSpeakStep();});
+  }else{
+    no.textContent='Step 6 of 6 · Review';
+    var rows=LEVELS.map(function(l){var r=G.results[l.id];return '<div class="sumrow" style="--c:'+l.c+'"><i></i><span>'+l.name+' <span class="note mono">'+l.seg+'</span></span><span class="v">'+(r?f1(r.deg)+'° '+sideWord(r.side):'—')+'</span></div>';}).join('');
+    var n=Object.keys(G.results).length;
+    body.innerHTML='<div class="gtitle">Session summary</div><div class="sumtbl">'+rows+'</div>'+
+      '<p class="note">'+(n<4?'Some zones were skipped; they will not be saved.':'All four zones measured.')+'</p>'+
+      '<div class="btnrow"><button class="btn" id="gDiscard">Discard</button><button class="btn primary" id="gSave" style="min-height:46px;font-size:15px"'+(n?'':' disabled')+'>Save session</button></div>';
+    $('gDiscard').addEventListener('click',gExit);
+    $('gSave').addEventListener('click',function(){
+      LEVELS.forEach(function(l){var r=G.results[l.id];if(r)addReading(l.id,r.deg,r.side,'guided',true);});
+      toast('Session saved · '+n+' reading'+(n===1?'':'s'));say('Session saved.');gExit();showView('log');
+    });
+  }
+}
+function gStartCount(){
+  if(!enabled){enable();toast('Allow the sensor, then tap Start again');return;}
+  if(filt==null){toast('No reading yet. Hold on a second and tap Start again.');return;}
+  var l=LEVELS[G.step-1];
+  filt=null;peakV=null;peakDirty=false;updatePeakUI();
+  G.phase='counting';G.left=state.secs;gRender();
+  say('Go. '+G.left);
+  var total=state.secs;
+  function paint(){var ring=$('gRing'),num=$('gNum');if(num)num.innerHTML=G.left+'<small>slide</small>';if(ring)ring.setAttribute('stroke-dashoffset',(326.7*(1-G.left/total)).toFixed(1));}
+  paint();
+  G.timer=setInterval(function(){
+    G.left--;
+    if(G.left>0){paint();say(String(G.left));return;}
+    gStopCount();
+    var v=peakV!=null?peakV:liveV,a=Math.abs(v||0),side=a<0.5?'0':(v>0?'R':'L');
+    G.results[l.id]={deg:Math.round(a*10)/10,side:side};
+    G.phase='done';gRender();
+    say('Stop. Peak '+f1(a).replace('.',' point ')+' degrees, '+sideLong(side)+'. Tap next, or redo.');
+  },1000);
+}
+function gStopCount(){if(G.timer){clearInterval(G.timer);G.timer=null;}}
+function gExit(){gStopCount();G.active=false;$('guided').hidden=true;$('free').hidden=false;$('instrument').hidden=false;$('lrbar').hidden=false;try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}}
+$('startGuided').addEventListener('click',function(){
+  G.active=true;G.step=0;G.phase='ready';G.results={};
+  $('free').hidden=true;$('guided').hidden=false;
+  if(state.voice&&'speechSynthesis' in window){try{window.speechSynthesis.cancel();}catch(e){}}
+  gRender();gSpeakStep();window.scrollTo(0,0);
+});
+$('gExit').addEventListener('click',gExit);
 
 /* ---------- setup ---------- */
 function renderTop(){$('topL').setAttribute('aria-pressed',state.top==='L'?'true':'false');$('topR').setAttribute('aria-pressed',state.top==='R'?'true':'false');}
@@ -450,59 +730,40 @@ $('topL').addEventListener('click',function(){state.top='L';save();renderTop();p
 $('topR').addEventListener('click',function(){state.top='R';save();renderTop();peakV=null;updatePeakUI();});
 renderTop();
 function renderZero(){$('zeroVal').textContent='Offset '+f1(state.zero)+'°';}
-$('setZero').addEventListener('click',function(){
-  if(!enabled||filt==null){toast('Enable the sensor first');return;}
-  state.zero=Math.round(filt*10)/10;save();renderZero();peakV=null;updatePeakUI();toast('Zero set');
-});
+$('setZero').addEventListener('click',function(){if(!enabled||filt==null){toast('Enable the sensor first');return;}state.zero=Math.round(filt*10)/10;save();renderZero();peakV=null;updatePeakUI();toast('Zero set');});
 $('clearZero').addEventListener('click',function(){state.zero=0;save();renderZero();peakV=null;updatePeakUI();});
 renderZero();
-
+$('voiceSel').value=String(state.voice);$('voiceSel').addEventListener('change',function(){state.voice=this.value==='1'?1:0;save();if(state.voice)say('Voice on.');});
+$('secsInp').value=state.secs;$('secsInp').addEventListener('change',function(){state.secs=clamp(parseInt(this.value,10)||6,3,20);this.value=state.secs;save();});
+$('videoInp').value=state.video;$('videoInp').addEventListener('change',function(){state.video=this.value.trim();save();renderVideo();});
 function arm(btn,label,action){
   if(btn.classList.contains('armed')){btn.classList.remove('armed');btn.textContent=btn.dataset.label;action();return;}
   btn.dataset.label=btn.textContent;btn.classList.add('armed');btn.textContent=label;
   setTimeout(function(){if(btn.classList.contains('armed')){btn.classList.remove('armed');btn.textContent=btn.dataset.label;}},3000);
 }
-$('clearAll').addEventListener('click',function(){arm(this,'Tap again to delete all',function(){state.readings=[];save();renderLog();toast('All readings deleted');});});
+$('clearAll').addEventListener('click',function(){arm(this,'Tap again to delete all',function(){state.readings=[];save();renderLog();renderReportMeas();toast('All readings deleted');});});
 
 /* ---------- CSV ---------- */
 function csv(){
   var rows=[['date','time','level','segment','degrees','higher_side','source']];
-  state.readings.slice().sort(function(a,b){return a.t<b.t?-1:1;}).forEach(function(r){
-    var d=new Date(r.t);rows.push([dayKey(d),fmtTime(r.t),byId[r.level].name,byId[r.level].seg,r.deg,r.side==='0'?'level':r.side==='R'?'right':'left',r.src]);
-  });
+  state.readings.slice().sort(function(a,b){return a.t<b.t?-1:1;}).forEach(function(r){var d=new Date(r.t);rows.push([dayKey(d),fmtTime(r.t),byId[r.level].name,byId[r.level].seg,r.deg,r.side==='0'?'level':r.side==='R'?'right':'left',r.src]);});
   return rows.map(function(r){return r.join(',');}).join('\n');
 }
-function copyCsv(){
-  if(!state.readings.length){toast('Nothing to copy yet');return;}
-  var text=csv();
-  function fallback(){var ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy');}catch(e){}document.body.removeChild(ta);toast(ok?'CSV copied':'Copy blocked by the browser');}
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast('CSV copied');},fallback);}else fallback();
-}
-$('copyCsv').addEventListener('click',copyCsv);
-$('copyCsv2').addEventListener('click',copyCsv);
+function copyCsv(){if(!state.readings.length){toast('Nothing to copy yet');return;}copyText(csv(),'CSV copied');}
+$('copyCsv').addEventListener('click',copyCsv);$('copyCsv2').addEventListener('click',copyCsv);$('copyCsv3').addEventListener('click',copyCsv);
 
 /* ---------- log view ---------- */
 function groupByDay(){
   var map={};
   state.readings.forEach(function(r){var k=dayKey(new Date(r.t));(map[k]=map[k]||[]).push(r);});
-  var keys=Object.keys(map).sort();
-  return keys.map(function(k){
-    var list=map[k].slice().sort(function(a,b){return a.t<b.t?-1:1;});
-    var last={};list.forEach(function(r){last[r.level]=r;});
-    return {key:k,list:list,last:last};
-  });
+  return Object.keys(map).sort().map(function(k){var list=map[k].slice().sort(function(a,b){return a.t<b.t?-1:1;});var last={};list.forEach(function(r){last[r.level]=r;});return {key:k,list:list,last:last};});
 }
 function sv(r){return r.side==='L'?-r.deg:r.side==='R'?r.deg:0;}
-
 var chartDays=[],chartX=[];
 function renderChart(days){
   var svg=$('chart'),note=$('chartNote'),legend=$('legend');
   legend.innerHTML=LEVELS.map(function(l){return '<span style="--c:'+l.c+'">'+l.name+'</span>';}).join('');
-  if(days.length<2){
-    svg.innerHTML='';svg.setAttribute('viewBox','0 0 360 1');
-    note.textContent=days.length===0?'No readings yet. Log a peak from the Measure tab.':'The trend line appears after a second session on another day.';
-    chartDays=[];return;
-  }
+  if(days.length<2){svg.innerHTML='';svg.setAttribute('viewBox','0 0 360 1');note.textContent=days.length===0?'No readings yet. Log a peak from the Measure tab.':'The trend line appears after a second session on another day.';chartDays=[];return;}
   svg.setAttribute('viewBox','0 0 360 230');
   var W=360,H=230,L=34,Rm=46,T=14,B=28,pw=W-L-Rm,ph=H-T-B;
   var maxAbs=0;days.forEach(function(d){LEVELS.forEach(function(l){var r=d.last[l.id];if(r)maxAbs=Math.max(maxAbs,r.deg);});});
@@ -512,11 +773,7 @@ function renderChart(days){
   chartDays=days;chartX=days.map(function(_,i){return x(i);});
   var s=[];
   s.push('<rect class="bandrect" x="'+L+'" y="'+y(CUT).toFixed(1)+'" width="'+pw+'" height="'+(y(-CUT)-y(CUT)).toFixed(1)+'"/>');
-  for(var g=-Y;g<=Y;g+=5){
-    var yy=y(g).toFixed(1);
-    s.push('<line class="'+(g===0?'zero':'grid')+'" x1="'+L+'" x2="'+(L+pw)+'" y1="'+yy+'" y2="'+yy+'"/>');
-    if(g%10===0||Math.abs(g)===Y)s.push('<text class="ax" x="'+(L-6)+'" y="'+yy+'" text-anchor="end" dominant-baseline="middle">'+(g>0?'+':'')+g+'</text>');
-  }
+  for(var g=-Y;g<=Y;g+=5){var yy=y(g).toFixed(1);s.push('<line class="'+(g===0?'zero':'grid')+'" x1="'+L+'" x2="'+(L+pw)+'" y1="'+yy+'" y2="'+yy+'"/>');if(g%10===0||Math.abs(g)===Y)s.push('<text class="ax" x="'+(L-6)+'" y="'+yy+'" text-anchor="end" dominant-baseline="middle">'+(g>0?'+':'')+g+'</text>');}
   s.push('<text class="ax" x="'+(L-6)+'" y="'+(T-4)+'" text-anchor="end">R</text>');
   s.push('<text class="ax" x="'+(L-6)+'" y="'+(T+ph+10)+'" text-anchor="end">L</text>');
   var step=Math.max(1,Math.ceil(n/5));
@@ -541,8 +798,7 @@ function showTip(clientX){
   cross.setAttribute('x1',chartX[best]);cross.setAttribute('x2',chartX[best]);cross.setAttribute('visibility','visible');
   var tip=$('tip');
   tip.innerHTML='<div style="font-weight:600;margin-bottom:3px">'+esc(fmtDay(d.key))+'</div>'+LEVELS.map(function(l){var r=d.last[l.id];return '<div class="r"><span><i style="--c:'+l.c+'"></i>'+l.id+'</span><b>'+(r?f1(r.deg)+'° '+sideWord(r.side):'—')+'</b></div>';}).join('');
-  tip.hidden=false;
-  var pct=chartX[best]/360*100;tip.style.left=clamp(pct,22,78)+'%';
+  tip.hidden=false;tip.style.left=clamp(chartX[best]/360*100,22,78)+'%';
 }
 function hideTip(){$('tip').hidden=true;var c=$('cross');if(c)c.setAttribute('visibility','hidden');}
 var cw=$('chartWrap');
@@ -550,35 +806,156 @@ cw.addEventListener('pointermove',function(e){showTip(e.clientX);});
 cw.addEventListener('pointerdown',function(e){showTip(e.clientX);});
 cw.addEventListener('pointerleave',hideTip);
 cw.addEventListener('pointerup',function(){setTimeout(hideTip,1500);});
-
 function renderDays(days){
   var box=$('days');box.innerHTML='';
   if(!days.length){box.innerHTML='<div class="empty-state">No sessions yet. Each day you log becomes a row here.</div>';return;}
   days.slice().reverse().forEach(function(d,idx){
     var det=document.createElement('details');det.className='day';if(idx===0)det.open=true;
     var cells=LEVELS.map(function(l){var r=d.last[l.id];return '<div class="cell'+(r?'':' empty')+'" style="--c:'+l.c+'"><i></i>'+(r?f1(r.deg)+' '+sideWord(r.side):'—')+'</div>';}).join('');
-    var entries=d.list.slice().reverse().map(function(r){
-      return '<div class="entry" data-id="'+r.id+'"><span class="t">'+fmtTime(r.t)+'</span><span>'+byId[r.level].name+' <span class="src">'+(r.src==='manual'?'by hand':'')+'</span></span><span class="v">'+f1(r.deg)+'° '+sideWord(r.side)+'</span><button class="btn small ghost del" type="button" aria-label="Delete reading">×</button></div>';
-    }).join('');
+    var entries=d.list.slice().reverse().map(function(r){return '<div class="entry" data-id="'+r.id+'"><span class="t">'+fmtTime(r.t)+'</span><span>'+byId[r.level].name+' <span class="src">'+(r.src==='manual'?'by hand':r.src==='guided'?'guided':'')+'</span></span><span class="v">'+f1(r.deg)+'° '+sideWord(r.side)+'</span><button class="btn small ghost del" type="button" aria-label="Delete reading">×</button></div>';}).join('');
     det.innerHTML='<summary><div class="dh"><span>'+esc(fmtDay(d.key))+'</span><small>'+d.list.length+(d.list.length===1?' reading':' readings')+'</small></div><div class="cells">'+cells+'</div></summary><div class="entries">'+entries+'</div>';
-    det.querySelectorAll('.del').forEach(function(b){
-      b.addEventListener('click',function(ev){ev.preventDefault();var id=b.closest('.entry').dataset.id;arm(b,'Delete?',function(){state.readings=state.readings.filter(function(r){return r.id!==id;});save();renderLog();});});
-    });
+    det.querySelectorAll('.del').forEach(function(b){b.addEventListener('click',function(ev){ev.preventDefault();var id=b.closest('.entry').dataset.id;arm(b,'Delete?',function(){state.readings=state.readings.filter(function(r){return r.id!==id;});save();renderLog();renderReportMeas();});});});
     box.appendChild(det);
   });
 }
 function renderLog(){var days=groupByDay();renderChart(days);renderDays(days);}
 renderLog();
 
+/* ---------- report ---------- */
+var SECTIONS=[
+  {t:'Basics',f:[
+    {id:'age',l:'Age',ty:'number',ph:'years'},
+    {id:'sex',l:'Sex',ty:'select',o:['','Male','Female','Prefer not to say']},
+    {id:'height',l:'Height',ty:'number',ph:'cm'},
+    {id:'weight',l:'Weight',ty:'number',ph:'kg'},
+    {id:'growing',l:'Still growing?',ty:'select',o:['','Yes','No','Unsure']},
+    {id:'diagdate',l:'When was the curve first noticed?',ty:'text',ph:'e.g. age 14, school screening'}
+  ]},
+  {t:'X-ray and diagnosis',f:[
+    {id:'xray',l:'X-ray available?',ty:'select',o:['','Yes','No','Planned']},
+    {id:'cobb',l:'Cobb angles and levels (from the report)',ty:'text',ph:'e.g. T6–T12 right 28°, L1–L4 left 18°',full:1},
+    {id:'thoracicdir',l:'Thoracic curve convex to',ty:'select',o:['','Right','Left','None','Unknown']},
+    {id:'lumbardir',l:'Lumbar curve convex to',ty:'select',o:['','Right','Left','None','Unknown']},
+    {id:'risser',l:'Risser sign',ty:'select',o:['','Unknown','0','1','2','3','4','5']},
+    {id:'curvetype',l:'Curve type / classification, if told',ty:'text',ph:'e.g. 3-curve, Rigo A2'},
+    {id:'brace',l:'Brace',ty:'text',ph:'none, or type and hours/day',full:1}
+  ]},
+  {t:'Posture, seen from behind',f:[
+    {id:'shoulder',l:'Shoulders',ty:'select',o:['','Even','Right higher','Left higher']},
+    {id:'scapula',l:'Shoulder blade sticking out',ty:'select',o:['','Neither','Right','Left']},
+    {id:'ribhump',l:'Rib hump in forward bend',ty:'select',o:['','None','Right','Left']},
+    {id:'lumbarhump',l:'Lower-back hump in forward bend',ty:'select',o:['','None','Right','Left']},
+    {id:'waist',l:'Waist crease',ty:'select',o:['','Even','Deeper on right','Deeper on left']},
+    {id:'hip',l:'Hip more prominent',ty:'select',o:['','Even','Right','Left']},
+    {id:'headoff',l:'Head over pelvis',ty:'select',o:['','Centred','Shifted right','Shifted left']},
+    {id:'chest',l:'Front of chest / ribs asymmetry',ty:'text',ph:'e.g. left lower ribs flatter, right upper flatter',full:1}
+  ]},
+  {t:'Simple tests',f:[
+    {id:'sidebend',l:'Side bend: does the curve straighten?',ty:'select',o:['','Not done','Fully','Partly','Not at all']},
+    {id:'leglength',l:'Leg length',ty:'select',o:['','Unsure','Equal','Left shorter','Right shorter']}
+  ]},
+  {t:'Symptoms',f:[
+    {id:'pain',l:'Pain: where and when',ty:'text',ph:'e.g. right lower back after sitting',full:1},
+    {id:'painlevel',l:'Pain level (0–10)',ty:'select',o:['','0','1','2','3','4','5','6','7','8','9','10']},
+    {id:'other',l:'Other (numbness, breathing, fatigue)',ty:'text',ph:''}
+  ]},
+  {t:'Lifestyle',f:[
+    {id:'activity',l:'Activity level',ty:'select',o:['','Sedentary','Light','Moderate','High']},
+    {id:'sports',l:'Sports / training you do',ty:'text',ph:'e.g. gym 3×/week, swimming'},
+    {id:'sitting',l:'Sitting hours per day',ty:'number',ph:'hours'},
+    {id:'sleep',l:'Sleep position',ty:'select',o:['','Back','Side','Stomach','Mixed']}
+  ]},
+  {t:'Exercise plan constraints',f:[
+    {id:'minutes',l:'Minutes per day available',ty:'number',ph:'min'},
+    {id:'days',l:'Days per week',ty:'number',ph:'days'},
+    {id:'equipment',l:'Equipment at home',ty:'checks',o:['Wall bars','Chair or stool','Broomstick / pole','Resistance band','Mirror','Mat','None']},
+    {id:'prior',l:'Previous physio or Schroth sessions',ty:'text',ph:'e.g. 4 sessions with a certified therapist in 2025',full:1},
+    {id:'goal',l:'Main goal',ty:'text',ph:'e.g. stop progression, less pain, posture',full:1}
+  ]}
+];
+function allFields(){var a=[];SECTIONS.forEach(function(s){s.f.forEach(function(f){a.push(f);});});return a;}
+function buildReportForm(){
+  var form=$('reportForm'),html='';
+  SECTIONS.forEach(function(s){
+    html+='<div class="card"><h3>'+s.t+'</h3><div class="form">';
+    s.f.forEach(function(f){
+      var v=state.report[f.id];
+      if(f.ty==='select'){html+='<label'+(f.full?' class="full"':'')+'>'+f.l+'<select data-f="'+f.id+'">'+f.o.map(function(o){return '<option value="'+esc(o)+'"'+(v===o?' selected':'')+'>'+(o===''?'—':esc(o))+'</option>';}).join('')+'</select></label>';}
+      else if(f.ty==='checks'){html+='<div class="checks"><span class="note" style="grid-column:1/-1">'+f.l+'</span>'+f.o.map(function(o){var on=Array.isArray(v)&&v.indexOf(o)>=0;return '<label><input type="checkbox" data-f="'+f.id+'" value="'+esc(o)+'"'+(on?' checked':'')+'>'+esc(o)+'</label>';}).join('')+'</div>';}
+      else{html+='<label'+(f.full?' class="full"':'')+'>'+f.l+'<input type="'+(f.ty==='number'?'number':'text')+'"'+(f.ty==='number'?' inputmode="decimal"':'')+' data-f="'+f.id+'" placeholder="'+esc(f.ph||'')+'" value="'+esc(v==null?'':v)+'"></label>';}
+    });
+    html+='</div></div>';
+  });
+  form.innerHTML=html;
+  form.addEventListener('submit',function(e){e.preventDefault();});
+  form.addEventListener('input',onReportChange);
+  form.addEventListener('change',onReportChange);
+  updateProgress();
+}
+function onReportChange(e){
+  var el=e.target,id=el.dataset.f;if(!id)return;
+  if(el.type==='checkbox'){var arr=[];document.querySelectorAll('#reportForm input[type=checkbox][data-f="'+id+'"]:checked').forEach(function(c){arr.push(c.value);});state.report[id]=arr;}
+  else state.report[id]=el.value.trim();
+  save();updateProgress();
+}
+function answered(f){var v=state.report[f.id];return Array.isArray(v)?v.length>0:(v!=null&&String(v)!=='');}
+function updateProgress(){var fs=allFields(),n=fs.filter(answered).length;$('progTxt').textContent=n+' of '+fs.length+' answered';$('progBar').style.width=(fs.length?100*n/fs.length:0)+'%';}
+buildReportForm();
+
+function renderReportMeas(){
+  var days=groupByDay(),box=$('reportMeas');
+  if(!days.length){box.innerHTML='<p class="note">No scoliometer sessions yet.</p>';return;}
+  var html='<table class="readtbl"><thead><tr><th>Date</th>'+LEVELS.map(function(l){return '<th>'+l.id+'</th>';}).join('')+'</tr></thead><tbody>';
+  days.slice().reverse().forEach(function(d){html+='<tr><td>'+esc(fmtShort(d.key))+'</td>'+LEVELS.map(function(l){var r=d.last[l.id];return '<td>'+(r?f1(r.deg)+' '+sideWord(r.side):'—')+'</td>';}).join('')+'</tr>';});
+  box.innerHTML=html+'</tbody></table>';
+}
+renderReportMeas();
+
+function reportMd(){
+  var out=[],now=new Date();
+  out.push('# Scoliosis self-assessment report');
+  out.push('Generated '+now.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'})+' '+pad(now.getHours())+':'+pad(now.getMinutes())+' · Scoliometer web app · ATR = angle of trunk rotation, measured with the phone in forward bend');
+  out.push('');
+  var missing=[];
+  SECTIONS.forEach(function(s){
+    var lines=[];
+    s.f.forEach(function(f){if(answered(f)){var v=state.report[f.id];lines.push('- '+f.l+': '+(Array.isArray(v)?v.join(', '):v)+(f.ph&&f.ty==='number'&&f.ph!=='years'?' '+f.ph:''));}else missing.push(f.l);});
+    if(lines.length){out.push('## '+s.t);out.push.apply(out,lines);out.push('');}
+  });
+  var days=groupByDay();
+  out.push('## Scoliometer readings (ATR, degrees; R = patient\'s right side higher in forward bend)');
+  out.push('Zones: UT = upper thoracic T1–T4 · MT = mid thoracic T5–T8 · TL = thoracolumbar T9–L1 · LU = lumbar L2–L5');
+  if(!days.length){out.push('No sessions recorded yet.');}
+  else{
+    var last=days[days.length-1];
+    out.push('Latest session ('+fmtLong(last.key)+'):');
+    LEVELS.forEach(function(l){var r=last.last[l.id];out.push('- '+l.name+' ('+l.seg+'): '+(r?f1(r.deg)+'° '+sideLong(r.side):'not measured'));});
+    if(days.length>1){
+      var first=days[0];out.push('');out.push('Change since first session ('+fmtLong(first.key)+'):');
+      LEVELS.forEach(function(l){var a=first.last[l.id],b=last.last[l.id];if(a&&b){var d=sv(b)-sv(a);out.push('- '+l.id+': '+f1(sv(a))+' → '+f1(sv(b))+' ('+(d>=0?'+':'')+f1(d)+')');}});
+    }
+    out.push('');out.push('All sessions (last reading per zone per day; signed: + = right higher, − = left higher):');
+    out.push('| Date | UT | MT | TL | LU |');out.push('|---|---|---|---|---|');
+    days.forEach(function(d){out.push('| '+fmtLong(d.key)+' | '+LEVELS.map(function(l){var r=d.last[l.id];return r?(sv(r)>0?'+':'')+f1(sv(r)):'—';}).join(' | ')+' |');});
+  }
+  out.push('');
+  if(missing.length){out.push('## Not answered');out.push(missing.join(', '));out.push('');}
+  out.push('Notes: readings come from a phone tilt sensor, not a clinical scoliometer; zone boundaries were found by hand. This is a self-assessment for discussion with a therapist, not a diagnosis.');
+  return out.join('\n');
+}
+$('copyReport').addEventListener('click',function(){copyText(reportMd(),'Report copied');});
+if(navigator.share){$('shareReport').hidden=false;$('shareReport').addEventListener('click',function(){navigator.share({title:'Scoliosis self-assessment report',text:reportMd()}).catch(function(){});});}
+
 /* ---------- views ---------- */
 function showView(name){
-  ['measure','log','setup'].forEach(function(v){$('view-'+v).hidden=(v!==name);});
+  ['measure','log','report','setup'].forEach(function(v){$('view-'+v).hidden=(v!==name);});
   document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-selected',b.dataset.view===name?'true':'false');});
   if(name==='log')renderLog();
+  if(name==='report')renderReportMeas();
   window.scrollTo(0,0);
 }
 document.querySelectorAll('.tabs button').forEach(function(b){b.addEventListener('click',function(){showView(b.dataset.view);});});
-if(!state.readings.length)$('howto').open=true;
+if(!state.readings.length){$('howto').open=true;}
 })();
 </script>
 </body>
